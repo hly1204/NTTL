@@ -85,6 +85,10 @@ public:
         if (n != 0) throw std::out_of_range("only Fp<P>[0] will work");
         return (*this);
     }
+    constexpr decltype(auto) operator[](int n) const {
+        if (n != 0) throw std::out_of_range("only Fp<P>[0] will work");
+        return (*this);
+    }
 
     friend constexpr auto operator+(const Fp &lhs, const Fp &rhs) { return Fp(lhs) += rhs; }
     friend constexpr auto operator-(const Fp &lhs, const Fp &rhs) { return Fp(lhs) -= rhs; }
