@@ -1,0 +1,4 @@
+*.log
+*.o
+/test/local_test
+/build
