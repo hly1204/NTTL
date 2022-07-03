@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "concepts": "cpp",
+        "cstdint": "cpp",
+        "iostream": "cpp",
+        "stdexcept": "cpp",
+        "type_traits": "cpp",
+        "numeric": "cpp",
+        "limits": "cpp",
+        "array": "cpp",
+        "initializer_list": "cpp"
+    }
+}
