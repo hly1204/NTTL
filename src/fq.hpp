@@ -3,7 +3,7 @@
 
 #include "field.hpp"
 #include "polynomial.hpp"
-#include "Fp.hpp"
+#include "fp.hpp"
 #include <array>
 #include <cstdint>
 #include <utility>
@@ -81,7 +81,7 @@ public:
     try { return (*this *= rhs.inv()); } catch(...) { throw; }
     constexpr auto pow(long long e) const {
         Fq res{1}, x(*this);
-        if (e < 0) x = -x;
+        if (e < 0) x = x.inv();
         for (;;) {
             if (e & 1) res *= x;
             if ((e >>= 1) == 0) return res;

@@ -4,6 +4,7 @@
 #include <concepts>
 #include <cstdint>
 #include <utility>
+#include <type_traits>
 
 namespace nttl {
 
@@ -35,21 +36,26 @@ concept Field =
         {u - v} -> std::same_as<T>;
         {u * v} -> std::same_as<T>;
         {u / v} -> std::convertible_to<T>;
-        {u ^ -1ll} -> std::same_as<T>; // 同 pow
-        {u.pow(-1ll)} -> std::same_as<T>;
+        {u ^ -1ll} -> std::convertible_to<T>; // 同 pow
+        {u.pow(-1ll)} -> std::convertible_to<T>;
         {u == T{}} -> std::same_as<bool>;
     };
 
 template<typename T>
 concept FiniteField =
     Field<T> &&
+    std::is_integral_v<std::decay_t<decltype(T::x())>> &&
+    (std::is_same_v<decltype(T::card().first), std::uint32_t> ||
+    std::is_same_v<decltype(T::card().first), std::uint64_t>) &&
+    std::is_same_v<decltype(T::card().second), std::uint32_t> &&
     requires(T v) {
-        {T::x()} -> std::same_as<std::uint32_t>; // char
-        {T::card()} -> std::same_as<std::pair<std::uint32_t, std::uint32_t>>; // (a, b) -> a^b
+        v[0];
+        requires Field<std::decay_t<decltype(v[0])>>;
+    } &&
+    requires(const T v) {
         v[0];
         requires Field<std::decay_t<decltype(v[0])>>;
     };
-
 }
 
 #endif
