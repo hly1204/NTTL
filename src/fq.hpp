@@ -24,6 +24,8 @@ public:
     constexpr Fq(const Fq &) = default;
     constexpr Fq &operator=(const Fq &) = default;
 
+    operator Poly<FF>() const { return Poly(MyBase::cbegin(), MyBase::cend()); }
+
     static constexpr auto SIZE = static_cast<int>(DEG);
     static constexpr auto POLY = IrrPoly;
 
@@ -56,7 +58,7 @@ public:
         using P = Poly<value_type>;
         if (*this == Fq{}) throw std::runtime_error("division by zero");
         P iv;
-        std::tie(iv, std::ignore) = P::inv_gcd(P(MyBase::cbegin(), MyBase::cend()), P(POLY.cbegin(), POLY.cend()));
+        std::tie(iv, std::ignore) = P::inv_gcd(*this, P(POLY.cbegin(), POLY.cend()));
         Fq res;
         for (auto i = 0, e = iv.deg(); i <= e; ++i) res[i] = iv[i];
         return res;
@@ -71,7 +73,7 @@ public:
     }
     constexpr decltype(auto) operator*=(const Fq &rhs) {
         using P = Poly<value_type>;
-        P res(P(MyBase::cbegin(), MyBase::cend()) * P(rhs.cbegin(), rhs.cend()) % P(POLY.cbegin(), POLY.cend()));
+        P res(P(*this) * P(rhs) % P(POLY.cbegin(), POLY.cend()));
         const auto d = res.deg();
         for (auto i = 0; i <= d; ++i) MyBase::operator[](i) = res[i];
         for (auto i = d + 1; i < SIZE; ++i) MyBase::operator[](i) = value_type{}; // 重要!!!

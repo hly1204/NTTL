@@ -6,6 +6,7 @@
 #include <exception>
 #include <utility>
 #include <tuple>
+#include <iterator>
 
 namespace nttl {
 
@@ -163,6 +164,9 @@ public:
         return (lhs << ']');
     }
 };
+
+template<typename Iter>
+Poly(Iter a, Iter b) -> Poly<typename std::iterator_traits<Iter>::value_type>;
 
 }
 
