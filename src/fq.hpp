@@ -83,7 +83,10 @@ public:
     try { return (*this *= rhs.inv()); } catch(...) { throw; }
     constexpr auto pow(long long e) const {
         Fq res{1}, x(*this);
-        if (e < 0) x = x.inv();
+        if (e < 0) {
+            x = x.inv();
+            e = -e; // 为了简便, 不考虑溢出
+        }
         for (;;) {
             if (e & 1) res *= x;
             if ((e >>= 1) == 0) return res;
