@@ -7,6 +7,7 @@
 #include <utility>
 #include <tuple>
 #include <iterator>
+#include <iostream>
 
 namespace nttl {
 
