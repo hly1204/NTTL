@@ -116,23 +116,32 @@ public:
         return std::make_pair(quo, rem.shrink()); // (quotient, remainder)
     }
 
-    constexpr auto eval(const value_type &pt) const {
+    constexpr auto operator()(const value_type &pt) const {
         value_type res;
         for (auto i = deg(); i >= 0; --i) res = pt * res + MyBase::operator[](i);
         return res;
     }
 
     static constexpr auto inv_gcd(Poly a, Poly b) {
-        Poly x1{1}, x2{0}, x3{0}, x4{1};
+        Poly x1{value_type{1}}, x2, x3, x4{value_type{1}};
         while (b != Poly{}) {
             auto [q, r] = a.div_mod(b);
             std::tie(x1, x2, x3, x4, a, b) = std::make_tuple(x3, x4, x1 - x3 * q, x2 - x4 * q, b, r);
         }
-        return std::make_pair(x1, a);
+        // 使 gcd 为首一多项式, 在 gcd 为一时可以直接获取乘法逆元
+        return std::make_pair(x1 / Poly{a.lc()}, a / Poly{a.lc()});
     }
 
     static constexpr auto inter(const std::vector<value_type> &x, const std::vector<value_type> &y) {
-        /// TODO:
+        // `x` 中的元素必须唯一
+        if (x.size() != y.size()) throw std::runtime_error("x.size() != y.size()");
+        const auto n = static_cast<int>(x.size());
+        Poly f, m{value_type{1}};
+        for (auto i = 0; i != n; ++i) {
+            f += Poly{(y[i] - f(x[i])) / m(x[i])} * m;
+            m *= Poly{-x[i], value_type{1}};
+        }
+        return std::make_pair(f, m);
     }
 
     friend constexpr auto operator+(const Poly &lhs, const Poly &rhs) { return Poly(lhs) += rhs; }

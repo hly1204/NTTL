@@ -56,7 +56,7 @@ public:
     /// \brief 乘法逆元
     constexpr auto inv() const {
         using P = Poly<value_type>;
-        if (*this == Fq{}) throw std::runtime_error("division by zero");
+        if (*this == Fq{}) throw std::runtime_error("Division by zero");
         P iv;
         std::tie(iv, std::ignore) = P::inv_gcd(*this, P(POLY.cbegin(), POLY.cend()));
         Fq res;

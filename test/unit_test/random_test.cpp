@@ -1,5 +1,3 @@
-#include "fq.hpp"
-#include "polynomial.hpp"
 #include "random.hpp"
 #include <gtest/gtest.h>
 #include <random>
@@ -9,8 +7,8 @@ TEST(xoshiro256starstar, BasicTest) {
     std::uniform_int_distribution<int> dis(0, 10);
     for (int i = 0; i != 10; ++i) {
         int r = dis(gen);
-        EXPECT_LE(r, 10);
-        EXPECT_GE(r, 0);
+        EXPECT_LE(r, 10) << r << " less equal 10";
+        EXPECT_GE(r, 0) << r << " greater equal 0";
     }
 }
 
