@@ -8,6 +8,7 @@
 #include <tuple>
 #include <iterator>
 #include <iostream>
+#include <optional>
 
 namespace nttl {
 
@@ -90,7 +91,7 @@ public:
         Poly res(q + 1);
         const auto iv = rhs.lc().inv();
         for (auto i = q; i >= 0; --i)
-            if ((res[i] = MyBase::operator[](n--) * iv) != 0)
+            if ((res[i] = MyBase::operator[](n--) * iv) != value_type{})
                 for (auto j = 0; j != m; ++j) MyBase::operator[](i + j) -= res[i] * rhs[j];
         return (operator=(res));
     }
@@ -99,7 +100,7 @@ public:
         if (m == -1) throw std::runtime_error("Division by zero");
         const auto iv = rhs.lc().inv();
         for (auto i = q; i >= 0; --i)
-            if (auto res = MyBase::operator[](n--) * iv; res != 0)
+            if (auto res = MyBase::operator[](n--) * iv; res != value_type{})
                 for (auto j = 0; j <= m; ++j) MyBase::operator[](i + j) -= res * rhs[j];
         return (shrink());
     }
@@ -111,7 +112,7 @@ public:
         const auto iv = rhs.lc().inv();
         Poly quo(q + 1), rem(*this);
         for (auto i = q; i >= 0; --i)
-            if ((quo[i] = rem[n--] * iv) != 0)
+            if ((quo[i] = rem[n--] * iv) != value_type{})
                 for (auto j = 0; j <= m; ++j) rem[i + j] -= quo[i] * rhs[j];
         return std::make_pair(quo, rem.shrink()); // (quotient, remainder)
     }
@@ -123,18 +124,21 @@ public:
     }
 
     static constexpr auto inv_gcd(Poly a, Poly b) {
-        Poly x1{value_type{1}}, x2, x3, x4{value_type{1}};
+        Poly x1{value_type{1}}, x3;
         while (b != Poly{}) {
             auto [q, r] = a.div_mod(b);
-            std::tie(x1, x2, x3, x4, a, b) = std::make_tuple(x3, x4, x1 - x3 * q, x2 - x4 * q, b, r);
+            std::tie(x1, x3, a, b) = std::make_tuple(x3, x1 - x3 * q, b, r);
         }
         // 使 gcd 为首一多项式, 在 gcd 为一时可以直接获取乘法逆元
         return std::make_pair(x1 / Poly{a.lc()}, a / Poly{a.lc()});
     }
 
+    /// \brief 插值.
+    /// \param x 设多项式为 \f$f\f$ 那么 \c x[i] 为 \f$f\f$ 所求值的点.
+    /// \param y 设多项式为 \f$f\f$ 那么 \c y[i] 为 \f$f\f$ 在 \c x[i] 的点值.
     static constexpr auto inter(const std::vector<value_type> &x, const std::vector<value_type> &y) {
         // `x` 中的元素必须唯一
-        if (x.size() != y.size()) throw std::runtime_error("x.size() != y.size()");
+        if (x.size() != y.size()) throw std::runtime_error("Size error");
         const auto n = static_cast<int>(x.size());
         Poly f, m{value_type{1}};
         for (auto i = 0; i != n; ++i) {
@@ -142,6 +146,29 @@ public:
             m *= Poly{-x[i], value_type{1}};
         }
         return std::make_pair(f, m);
+    }
+
+    /// \brief 带有错误的插值.
+    /// \param x  设多项式为 \f$f\f$ 那么 \c x[i] 为 \f$f\f$ 所求值的点. 共 \f$k\f$ 个.
+    /// \param y  设多项式为 \f$f\f$ 那么 \c y[i] 为 \f$f\f$ 在 \c x[i] 的点值. 共 \f$k\f$ 个.
+    /// \param kp \f$\deg(f) < k'\f$.
+    /// \param l  最多有 \f$l\f$ 个位置的点值是错误的.
+    static constexpr auto inter_we(const std::vector<value_type> &x, const std::vector<value_type> &y, int kp, int l)
+        -> std::optional<Poly> {
+        /// TODO:
+        const auto k = static_cast<int>(x.size());
+        if (k < 2 * l + kp) return {};
+        auto [ff, m] = inter(x, y);
+        auto extended_euclidean = [](Poly a, Poly b, int kp, int l) -> std::optional<Poly> {
+            Poly x1{value_type{1}}, x2, x3, x4{value_type{1}};
+            while (b != Poly{}) {
+                auto [q, r] = a.div_mod(b);
+                std::tie(x1, x2, x3, x4, a, b) = std::make_tuple(x3, x4, x1 - x3 * q, x2 - x4 * q, b, r);
+                if (a.deg() - x2.deg() < kp && x2.deg() <= l && a % x2 == Poly{}) return a / x2;
+            }
+            return {};
+        };
+        return extended_euclidean(m, ff, kp, l);
     }
 
     friend constexpr auto operator+(const Poly &lhs, const Poly &rhs) { return Poly(lhs) += rhs; }
