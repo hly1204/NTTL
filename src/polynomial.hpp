@@ -155,7 +155,6 @@ public:
     /// \param l  最多有 \f$l\f$ 个位置的点值是错误的.
     static constexpr auto inter_we(const std::vector<value_type> &x, const std::vector<value_type> &y, int kp, int l)
         -> std::optional<Poly> {
-        /// TODO:
         const auto k = static_cast<int>(x.size());
         if (k < 2 * l + kp) return {};
         auto [ff, m] = inter(x, y);
