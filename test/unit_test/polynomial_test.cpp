@@ -77,9 +77,12 @@ TEST(Poly, InterpolationWithErrorTest) {
         x.emplace_back(v);
         y.emplace_back(f(v));
     }
-    std::uniform_int_distribution<int> dis(0, k - 1);
-    for (auto i = 0; i != l; ++i) y[dis(gen)] = r();
-    EXPECT_EQ(f, f.inter_we(x, y, kp, l).value_or(nttl::Poly<nttl::F_2_32>{}));
+    for (int i = 0; i != 10; ++i) {
+        std::uniform_int_distribution<int> dis(0, k - 1);
+        auto yy = y;
+        for (auto j = 0; j != l; ++j) yy[dis(gen)] = r();
+        EXPECT_EQ(f, f.inter_we(x, yy, kp, l).value_or(nttl::Poly<nttl::F_2_32>{}));
+    }
 }
 
 int main(int argc, char *argv[]) {
